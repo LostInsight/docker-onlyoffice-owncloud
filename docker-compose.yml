@@ -1,8 +1,20 @@
 version: '3'
 services:
+  db:
+    container_name: db
+    image: postgres
+    restart: always
+    networks:
+      - onlyoffice
+    expose:
+      - '5432'
+    volumes:
+      - /data/postgresql/data:/var/lib/postgresql/data
+    env_file:
+      - db.env
   app:
     container_name: app-server
-    image: owncloud:fpm
+    image: nextcloud:fpm
     stdin_open: true
     tty: true
     restart: always
@@ -13,6 +25,14 @@ services:
       - onlyoffice
     volumes:
       - app_data:/var/www/html
+      - /data/nextcloud/custom_apps:/var/www/html/custom_apps
+      - /data/nextcloud/config:/var/www/html/config
+      - /data:/data
+
+    env_file:
+      - db.env
+    depends_on:
+      - db
   onlyoffice-document-server:
     container_name: onlyoffice-document-server
     image: onlyoffice/documentserver:latest
@@ -34,8 +54,8 @@ services:
     tty: true
     restart: always
     ports:
-      - 80:80
-      - 443:443
+      - 3080:80
+      - 3443:443
     networks:
       - onlyoffice
     volumes:
